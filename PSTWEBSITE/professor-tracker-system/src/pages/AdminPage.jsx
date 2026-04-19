@@ -28,7 +28,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* Navbar */}
+      {}
       <nav className="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-10">
           <h1 className="text-xl font-bold text-[#1a2b56] tracking-tight">Xavier Scholastica</h1>
@@ -57,13 +57,13 @@ const AdminPage = () => {
           </div>
         </div>
       </nav>
-
+//test test
       <main className="max-w-7xl mx-auto p-8">
-        {/* Header Section */}
+        {}
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-4xl font-bold text-[#1a2b56] mb-2">Admin Dashboard</h2>
-            <p className="text-slate-500">Welcome Back, Admin. Here is the latest faculty overview.</p>
+            <p className="text-slate-500">Welcome Back, @Admin. Here is the latest faculty overview.</p>
           </div>
           <div className="flex gap-3">
             <button className="bg-[#e2e6f0] text-[#1a2b56] px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-slate-300 transition-colors uppercase tracking-wider">
@@ -75,7 +75,7 @@ const AdminPage = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {stats.map((stat, i) => (
             <div key={i} className={`bg-white p-6 rounded-xl shadow-sm border border-slate-100 ${stat.borderLeft || 'border-l-4 border-l-[#1a2b56]'}`}>
@@ -98,7 +98,7 @@ const AdminPage = () => {
           ))}
         </div>
 
-        {/* Table Section */}
+        {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="p-6 flex justify-between items-center">
             <div>
@@ -160,7 +160,7 @@ const AdminPage = () => {
             </tbody>
           </table>
 
-          {/* Pagination */}
+          {}
           <div className="px-6 py-6 border-t border-slate-100 flex justify-between items-center bg-white">
             <p className="text-sm text-slate-400 font-medium">Showing 1 to 4 of 342 entries</p>
             <div className="flex gap-1">
