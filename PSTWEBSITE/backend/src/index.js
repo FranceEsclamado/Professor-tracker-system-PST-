@@ -1,5 +1,6 @@
 //how our sever starts
 import dotenv from "dotenv";
+import app from "./app.js";
 import express from "express";
 import connectDB from "./config/database.js";
 
@@ -7,7 +8,6 @@ dotenv.config({
     path: './.env'
 });
 
-const app = express();
 
 const startServer = async () => {
     try {
