@@ -37,7 +37,7 @@ const getPosts = async (req, res) => {
 const updatePost = async (req, res) => {
     try {
         if(Object.keys(req.body).length === 0){
-            return res.status(400),json({
+            return res.status(400).json({
                 message: "No data provided"
             });
         }

@@ -97,10 +97,35 @@ const getUsers = async (req, res) => {
         });
     }
 }
+
+const  updateUser = async (req, res) => {
+    try {
+        if(Object.keys(req.body).length ===0){
+            return res.status(400).json({
+                message: "No data provided"
+            });
+        }
+        
+        const user = await User.findByIdAndUpdate(req.params.id, req.body,{new: true});
+          if(!user){
+            return res.status(404).json({
+            message: "user not found"
+            });
+        } 
+
+        res.status(200).json({
+            message: "user updated successful", user
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "SERVER ERROR"
+        });
+    }
+}
 export{
     registerUser,
     loginUser,
     logoutUser,
-    getUsers
-
+    getUsers,
+    updateUser
 };
