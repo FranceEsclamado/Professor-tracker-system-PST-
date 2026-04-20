@@ -117,7 +117,28 @@ const  updateUser = async (req, res) => {
             message: "user updated successful", user
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
+            message: "SERVER ERROR"
+        });
+    }
+}
+
+
+const deleteUser = async (req, res) => {
+    try {
+        const userdeleted = await User.findByIdAndDelete(req.params.id);
+        if (!userdeleted){
+            return res.status(400).json({
+                message: "user not found"
+            });
+        }
+
+        res.status(200).json({
+            message: "user deleted succesfull"
+        });
+    } catch (error) {
+         res.status(500).json({
             message: "SERVER ERROR"
         });
     }
@@ -127,5 +148,6 @@ export{
     loginUser,
     logoutUser,
     getUsers,
-    updateUser
+    updateUser,
+    deleteUser
 };
