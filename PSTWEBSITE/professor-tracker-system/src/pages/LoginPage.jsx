@@ -1,5 +1,7 @@
-import { useState } from "react";
+import api from "../api/axios";
+import { saveToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -8,20 +10,24 @@ function Login() {
 
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    // mock validation pani
+  const handleLogin = async () => {
     if (!username || !password) {
       setError("Please fill in all fields");
-      return;
-    }
-
-    //epeks pani bayps
-    if (username === "prof" && password === "prof") {
-      setError("");
-      navigate("/dashboard");
+    return;
+  }
+  try {
+    const res = await api.post("/users/login", { username, password });
+    const { token } = res.data;
+      if (token) {
+        saveToken(token);
+        setError("");
+        navigate("/dashboard", { replace: true });
     } else {
-      setError("Invalid username or password");
+      setError("Login failed: no token returned");
     }
+  } catch (err) {
+    setError(err.response?.data?.message || "Invalid username or password");
+  }
   };
 
   return (

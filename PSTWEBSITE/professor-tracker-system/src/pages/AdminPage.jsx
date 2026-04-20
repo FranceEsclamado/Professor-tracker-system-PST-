@@ -57,7 +57,7 @@ const AdminPage = () => {
           </div>
         </div>
       </nav>
-//test test
+
       <main className="max-w-7xl mx-auto p-8">
         {}
         <div className="flex justify-between items-end mb-8">
