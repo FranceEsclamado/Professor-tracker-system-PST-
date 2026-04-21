@@ -3,9 +3,9 @@ import { User } from "../models/user.model.js"
 
 const registerUser = async (req, res) => {
     try {
-        const {username, email, password, department}= req.body;
+        const {username, email, password, department, firstName, lastName}= req.body;
 
-        if(!username || !email || !password || !department){
+        if(!username || !email || !password || !department || !firstName || !lastName){
             return res.status(400).json({message: "empty field detected"})
         }
 
@@ -19,12 +19,13 @@ const registerUser = async (req, res) => {
             email: email.toLowerCase(),
             password,
             department,
-            loggedIn: false
+            firstName,
+            lastName,
         });
 
         res.status(201).json({
             message: "User Registered",
-            user: {id: user._id, email: user.email, username: user.username, department: user.department}
+            user: {id: user._id, email: user.email, username: user.username, firstName: user.firstName, lastName: user.lastName, department: user.department}
         });
     } catch (error) {
         res.status(500).json({message: "error server", error: error.message });
@@ -75,7 +76,9 @@ const loginUser = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        username: user.username
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
       }
     });
   } catch (error) {

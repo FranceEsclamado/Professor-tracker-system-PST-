@@ -25,6 +25,16 @@ const userSchema = new Schema(
             lowercase: true,
             trim: true, 
         },
+        firstName:{
+            type: String,
+            required: true,
+            trim: true,
+        },
+        lastName:{
+            type: String,
+            required: true,
+            trim: true,
+        },
         department:{
             type: String,
             required: true,

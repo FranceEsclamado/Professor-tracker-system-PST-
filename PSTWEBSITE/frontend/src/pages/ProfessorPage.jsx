@@ -1,76 +1,51 @@
-import React from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { clearToken } from "../utils/auth";
+import { clearToken, clearUser, getUser } from "../utils/auth";
+import useSchedules from "../hooks/useSchedules";
 import {
   Building2,
   Calendar,
   MapPin,
-  Users,
+  Clock,
   ChevronDown,
   Plus,
   LogOut,
 } from "lucide-react";
+import ScheduleModal from "../components/ScheduleModal";
 
 const ProfessorPage = () => {
   const navigate = useNavigate();
-
-  const schedule = [
-    {
-      time: "09:00",
-      title: "Microbiology II - Lecture",
-      location: "FH201",
-      students: "45 Students",
-      status: "ACTIVE",
-      isActive: true,
-    },
-    {
-      time: "10:30",
-      title: "Advanced Genetics",
-      location: "SB104",
-      students: "32 Students",
-      status: "UPCOMING",
-      isActive: false,
-    },
-    {
-      time: "14:00",
-      title: "Research Colloquium",
-      location: "Conf-Room B",
-      students: "Faculty",
-      status: "UPCOMING",
-      isActive: false,
-    },
-  ];
+  const user = getUser();
+  const { schedules, loading, refresh } = useSchedules();
+  const [showModal, setShowModal] = useState(false);
 
   const handleLogout = async () => {
     try {
-      // optional
-      await api.post("/users/logout", { username: "julian" });
-    } catch (err) {
+      await api.post("/users/logout", { username: user?.username });
+    } catch {
       // ignore server errors on logout
     } finally {
       clearToken();
+      clearUser();
       navigate("/login", { replace: true });
     }
   };
+
+  const displayName = user ? `${user.firstName} ${user.lastName}` : "Professor";
+  const welcomeName = user?.firstName || user?.username || "there";
 
   return (
     <div className="min-h-screen bg-[#eef1f8] p-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center border border-gray-50">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-200 shrink-0 shadow-inner">
-              <img
-                src="/api/placeholder/80/80"
-                alt="Dr. Julian Estrada"
-                className="w-full h-full object-cover"
-              />
-            </div>
+
             <div>
-              <h1 className="text-3xl font-bold text-[#14234b]">Dr. Julian Estrada</h1>
+              <h1 className="text-3xl font-bold text-[#14234b]">{displayName}</h1>
               <div className="flex items-center gap-2 text-gray-500 mt-1 mb-2 text-sm">
                 <Building2 size={16} />
-                <span>Department of Biological Sciences</span>
+                <span>Department of {user?.department || "Sciences"}</span>
               </div>
               <span className="bg-[#e4ebfa] text-[#4a6bdf] px-3 py-1 rounded-full text-xs font-semibold">
                 Tenured Professor
@@ -93,10 +68,10 @@ const ProfessorPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-end gap-4">
           <div>
             <h2 className="text-4xl font-bold text-[#14234b] mb-2 font-serif tracking-tight">
-              Welcome Back, Julian!
+              Welcome Back, {welcomeName}!
             </h2>
             <p className="text-gray-600 text-sm">
-              It's a bright at the Xavier Main Campus. Here is your overview for today.
+              It's a bright day at the Xavier Main Campus. Here is your overview for today.
             </p>
           </div>
 
@@ -112,65 +87,66 @@ const ProfessorPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 bg-white rounded-2xl p-8 shadow-sm border border-gray-50">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold text-[#14234b]">Today's Schedule</h3>
+              <h3 className="text-2xl font-bold text-[#14234b]">My Schedule</h3>
               <div className="flex items-center gap-2 text-gray-500 font-medium text-sm">
                 <Calendar size={18} />
-                October 24, 2023
+                {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </div>
             </div>
 
             <div className="space-y-0 relative">
-              <div className="absolute left-[39px] top-2 bottom-6 w-px bg-gray-200"></div>
+              {!loading && schedules.length > 0 && (
+                <div className="absolute left-[39px] top-2 bottom-6 w-px bg-gray-200"></div>
+              )}
 
-              {schedule.map((item, index) => (
-                <div key={index} className="flex gap-8 relative pb-8 last:pb-0">
-                  <div className="w-16 pt-3 text-sm font-bold text-gray-600 shrink-0 bg-white z-10">
-                    {item.time}
-                  </div>
-
-                  <div
-                    className={`flex-1 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center border border-gray-100 transition-all ${
-                      item.isActive ? "bg-[#f8fafc] shadow-sm relative" : "bg-white"
-                    }`}
-                  >
-                    {item.isActive && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#f5b021] rounded-l-xl"></div>
-                    )}
-
-                    <div>
-                      <h4 className="text-lg font-bold text-[#14234b] mb-2">{item.title}</h4>
-                      <div className="flex gap-5 text-gray-500 text-sm font-medium">
-                        <span className="flex items-center gap-1.5">
-                          <MapPin size={16} className="text-gray-400" />
-                          {item.location}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Users size={16} className="text-gray-400" />
-                          {item.students}
-                        </span>
-                      </div>
+              {loading ? (
+                <p className="text-gray-400 text-sm text-center py-8">Loading schedules...</p>
+              ) : schedules.length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-8">No schedules yet. Add one to get started.</p>
+              ) : (
+                schedules.map((item, index) => (
+                  <div key={item._id || index} className="flex gap-8 relative pb-8 last:pb-0">
+                    <div className="w-16 pt-3 text-sm font-bold text-gray-600 shrink-0 bg-white z-10">
+                      {item.time}
                     </div>
 
-                    <span
-                      className={`mt-3 md:mt-0 text-[10px] font-bold px-2.5 py-1 rounded tracking-wide ${
-                        item.isActive ? "bg-[#e2f5ea] text-[#1f9254]" : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
+                    <div className="flex-1 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center border border-gray-100 bg-white transition-all">
+                      <div>
+                        <h4 className="text-lg font-bold text-[#14234b] mb-2">{item.subject}</h4>
+                        <div className="flex gap-5 text-gray-500 text-sm font-medium">
+                          <span className="flex items-center gap-1.5">
+                            <MapPin size={16} className="text-gray-400" />
+                            {item.room}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Clock size={16} className="text-gray-400" />
+                            {item.day}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className="mt-3 md:mt-0 text-[10px] font-bold px-2.5 py-1 rounded tracking-wide bg-gray-100 text-gray-500">
+                        SCHEDULED
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
-            <button className="w-full mt-6 pt-6 flex items-center justify-center gap-1 text-[#14234b] font-bold text-sm hover:text-blue-700 transition-colors">
-              Expand Full Schedule
-              <ChevronDown size={18} />
-            </button>
+            {schedules.length > 3 && (
+              <button className="w-full mt-6 pt-6 flex items-center justify-center gap-1 text-[#14234b] font-bold text-sm hover:text-blue-700 transition-colors">
+                Expand Full Schedule
+                <ChevronDown size={18} />
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col gap-6">
-            <button className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-50 flex items-center justify-center gap-3 text-[#14234b] font-bold text-lg hover:shadow-md transition-shadow">
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-50 flex items-center justify-center gap-3 text-[#14234b] font-bold text-lg hover:shadow-md transition-shadow"
+            >
               <Calendar size={22} className="text-[#14234b]" />
               Add/Edit Schedule
             </button>
@@ -185,13 +161,23 @@ const ProfessorPage = () => {
                 <p className="text-4xl font-bold text-[#14234b]">12</p>
               </div>
 
-              <button className="absolute -bottom-4 -right-4 bg-[#fdbd21] hover:bg-[#eeb11d] text-white p-4 rounded-2xl shadow-lg transition-transform hover:scale-105 border-4 border-[#eef1f8]">
+              <button
+                onClick={() => setShowModal(true)}
+                className="absolute -bottom-4 -right-4 bg-[#fdbd21] hover:bg-[#eeb11d] text-white p-4 rounded-2xl shadow-lg transition-transform hover:scale-105 border-4 border-[#eef1f8]"
+              >
                 <Plus size={28} />
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <ScheduleModal
+          onClose={() => setShowModal(false)}
+          onSuccess={refresh}
+        />
+      )}
     </div>
   );
 };
