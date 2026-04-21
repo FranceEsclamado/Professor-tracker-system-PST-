@@ -1,5 +1,5 @@
 import api from "../api/axios";
-import { saveToken } from "../utils/auth";
+import { saveToken, saveUser } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -17,9 +17,10 @@ function Login() {
   }
   try {
     const res = await api.post("/users/login", { username, password });
-    const { token } = res.data;
+    const { token, user } = res.data;
       if (token) {
         saveToken(token);
+        saveUser(user);
         setError("");
         navigate("/dashboard", { replace: true });
     } else {

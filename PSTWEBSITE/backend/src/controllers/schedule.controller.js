@@ -1,38 +1,32 @@
 import { Schedule } from "../models/schedules.model.js";
-import { User } from "../models/user.model.js";
 
 //create schedule
 
 const createSchedule = async (req, res) => {
     try {
-        const { username, subject, room, time, day } = req.body;
-        const normalizedUsername = username?.toLowerCase().trim();
+        const { subject, room, time, day } = req.body;
 
-        if (!normalizedUsername || !subject || !room || !time || !day){
+        if (!subject || !room || !time || !day){
             return res.status(400).json({
                 message: "all fields needs to be filled"
             });
         }
 
-        const userExists = await User.findOne({ username: normalizedUsername });
-
-        if (!userExists) {
-            return res.status(404).json({
-                message: "User is not registered"
-            });
-        }
-
         const schedule = await Schedule.create({
-            username: normalizedUsername,
+            username: req.user.username,
+            createdBy: req.user._id,
             subject,
             room,
             time,
             day
         });
-            res.status(201).json({
-                message: "Schedule created successfully",
-                schedule
-            });
+
+        const populated = await schedule.populate("createdBy", "firstName lastName username");
+
+        res.status(201).json({
+            message: "Schedule created successfully",
+            schedule: populated
+        });
     } catch (error) {
         res.status(500).json({
             message: "SERVER ERROR"
@@ -42,7 +36,8 @@ const createSchedule = async (req, res) => {
 
 const getSchedules = async (req, res) => {
     try {
-        const schedules = await Schedule.find({ username: req.user.username });
+        const schedules = await Schedule.find({ username: req.user.username })
+            .populate("createdBy", "firstName lastName username");
         res.status(200).json(schedules);
     } catch (error) {
           res.status(500).json({
@@ -62,8 +57,9 @@ const getScheduleByUsername = async (req, res) => {
             });
         }
 
-        const schedules = await Schedule.find({ username: normalizedUsername });
-        
+        const schedules = await Schedule.find({ username: normalizedUsername })
+            .populate("createdBy", "firstName lastName username");
+
         if (!schedules || schedules.length === 0) {
             return res.status(404).json({
                 message: "No schedules found for this username"

@@ -5,8 +5,12 @@ const scheduleSchema = new Schema(
         username: {
             type: String,
             required: true,
-            ref: "User",
             trim: true,
+        },
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
         },
         subject: {
             type: String,
