@@ -3,13 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/LoginPage";
 import ProfessorPage from "./pages/ProfessorPage";
 import PrivateRoute from "./components/PrivateRoute";
+import MainPage from "./pages/MainPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* root redirects to login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<MainPage />} />
 
         {/* public */}
         <Route path="/login" element={<Login />} />

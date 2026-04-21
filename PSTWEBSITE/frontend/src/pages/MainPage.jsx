@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Icons
 const SearchIcon = ({ className }) => (
@@ -20,6 +21,7 @@ const ChevronDownIcon = ({ className }) => (
 );
 
 export default function MainPage() {
+    const navigate = useNavigate();
     const times = [
         "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", 
         "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"
@@ -68,8 +70,8 @@ export default function MainPage() {
                 {/* Login Section */}
                 <div className="flex-1 flex flex-col items-end justify-start">
                     <span className="text-sm font-medium text-gray-600 mb-1.5 pr-1">A professor?</span>
-                    <button className="bg-[#e4e9f0] hover:bg-[#d1d8e4] text-[#2c3b5e] border border-[#cbd5e1] font-semibold text-sm px-5 py-1.5 rounded-md shadow-sm transition-colors flex items-center gap-2">
-                        Login <span className="text-gray-400 text-xs">x</span>
+                    <button onClick={() => navigate('/login')} className="bg-[#e4e9f0] hover:bg-[#d1d8e4] text-[#2c3b5e] border border-[#cbd5e1] font-semibold text-sm px-5 py-1.5 rounded-md shadow-sm transition-colors flex items-center gap-2">
+                        Login 
                     </button>
                 </div>
             </header>
