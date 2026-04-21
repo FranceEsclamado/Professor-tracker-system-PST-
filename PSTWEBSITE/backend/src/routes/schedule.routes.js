@@ -4,7 +4,7 @@ import { protect } from "../middleware/auth.js";
 
 const router = Router();
 
-router.route('/create').post(protect, createSchedule);
+router.route('/create').post(createSchedule);
 router.route('/getSchedules').get(protect, getSchedules);
 router.route('/getSchedules/:username').get(protect, getScheduleByUsername);
 router.route('/update/:id').patch(protect, updateSchedule);

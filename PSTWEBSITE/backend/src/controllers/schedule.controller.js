@@ -1,17 +1,34 @@
 import { Schedule } from "../models/schedules.model.js";
+import { User } from "../models/user.model.js";
 
 //create schedule
 
 const createSchedule = async (req, res) => {
     try {
         const { username, subject, room, time, day } = req.body;
+        const normalizedUsername = username?.toLowerCase().trim();
 
-        if (!username || !subject || !room || !time || !day){
+        if (!normalizedUsername || !subject || !room || !time || !day){
             return res.status(400).json({
                 message: "all fields needs to be filled"
             });
-        }   
-        const schedule = await Schedule.create({ username, subject, room, time, day });
+        }
+
+        const userExists = await User.findOne({ username: normalizedUsername });
+
+        if (!userExists) {
+            return res.status(404).json({
+                message: "User is not registered"
+            });
+        }
+
+        const schedule = await Schedule.create({
+            username: normalizedUsername,
+            subject,
+            room,
+            time,
+            day
+        });
             res.status(201).json({
                 message: "Schedule created successfully",
                 schedule
@@ -25,7 +42,7 @@ const createSchedule = async (req, res) => {
 
 const getSchedules = async (req, res) => {
     try {
-        const schedules = await Schedule.find();
+        const schedules = await Schedule.find({ username: req.user.username });
         res.status(200).json(schedules);
     } catch (error) {
           res.status(500).json({
@@ -37,7 +54,15 @@ const getSchedules = async (req, res) => {
 const getScheduleByUsername = async (req, res) => {
     try {
         const { username } = req.params;
-        const schedules = await Schedule.find({ username });
+        const normalizedUsername = username.toLowerCase();
+
+        if (normalizedUsername !== req.user.username.toLowerCase()) {
+            return res.status(403).json({
+                message: "You can only access your own schedules"
+            });
+        }
+
+        const schedules = await Schedule.find({ username: normalizedUsername });
         
         if (!schedules || schedules.length === 0) {
             return res.status(404).json({
@@ -61,7 +86,7 @@ const updateSchedule = async (req, res) => {
             });
         }
 
-        const schedule = await Schedule.findByIdAndUpdate(req.params.id, req.body, {new: true});
+        const schedule = await Schedule.findOne({ _id: req.params.id, username: req.user.username });
 
         if(!schedule){
             return res.status(404).json({
@@ -69,8 +94,12 @@ const updateSchedule = async (req, res) => {
             });
         } 
 
+        delete req.body.username;
+        Object.assign(schedule, req.body);
+        const updatedSchedule = await schedule.save();
+
         res.status(200).json({
-            message: "schedule updated successfully", schedule
+            message: "schedule updated successfully", schedule: updatedSchedule
         });
     } catch (error){ 
         res.status(500).json({
@@ -81,9 +110,9 @@ const updateSchedule = async (req, res) => {
 
 const deleteSchedule = async (req, res) => {
     try {
-        const deleted = await Schedule.findByIdAndDelete(req.params.id);
+        const deleted = await Schedule.findOneAndDelete({ _id: req.params.id, username: req.user.username });
         if (!deleted){
-            return res.status(400).json({
+            return res.status(404).json({
                 message: "Schedule not found"
             });
         }
