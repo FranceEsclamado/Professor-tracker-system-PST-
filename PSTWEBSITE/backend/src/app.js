@@ -18,9 +18,9 @@ app.use(cors({
 // app.use(cors());
 
 import userRouter from './routes/user.route.js';
-import postRouter from './routes/post.routes.js';
+import schedulesRouter from './routes/schedule.routes.js';
 
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/posts", postRouter);
+app.use("/api/v1/schedules", schedulesRouter);
 
 export default app;
