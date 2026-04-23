@@ -16,6 +16,12 @@ import ScheduleModal from "../components/ScheduleModal";
 import ScheduleEditModal from "../components/ScheduleEditModal";
 import { formatScheduleTimeRange } from "../utils/scheduleTime";
 
+const formatDepartment = (department = "") =>
+  String(department)
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
 const ProfessorPage = () => {
   const navigate = useNavigate();
   const user = getUser();
@@ -37,6 +43,7 @@ const ProfessorPage = () => {
 
   const displayName = user ? `${user.firstName} ${user.lastName}` : "Professor";
   const welcomeName = user?.firstName || user?.username || "there";
+  const departmentName = formatDepartment(user?.department || "Sciences");
 
   return (
     <div className="min-h-screen bg-[#eef1f8] p-8 font-sans">
@@ -48,7 +55,7 @@ const ProfessorPage = () => {
               <h1 className="text-3xl font-bold text-[#14234b]">{displayName}</h1>
               <div className="flex items-center gap-2 text-gray-500 mt-1 mb-2 text-sm">
                 <Building2 size={16} />
-                <span>Department of {user?.department || "Sciences"}</span>
+                <span>Department of {departmentName}</span>
               </div>
               <span className="bg-[#e4ebfa] text-[#4a6bdf] px-3 py-1 rounded-full text-xs font-semibold">
                 Tenured Professor

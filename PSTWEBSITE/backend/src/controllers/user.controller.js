@@ -79,6 +79,7 @@ const loginUser = async (req, res) => {
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
+        department: user.department,
       }
     });
   } catch (error) {
