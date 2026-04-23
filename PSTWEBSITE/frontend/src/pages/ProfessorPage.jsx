@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { clearToken, clearUser, getUser } from "../utils/auth";
@@ -14,13 +14,36 @@ import {
 } from "lucide-react";
 import ScheduleModal from "../components/ScheduleModal";
 import ScheduleEditModal from "../components/ScheduleEditModal";
-import { formatScheduleTimeRange } from "../utils/scheduleTime";
+import { formatScheduleTimeRange, parseScheduleTimeRange } from "../utils/scheduleTime";
 
 const formatDepartment = (department = "") =>
   String(department)
     .trim()
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const DAY_SEQUENCE = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const DAY_ORDER_MAP = DAY_SEQUENCE.reduce((map, day, index) => {
+  map[day] = index;
+  return map;
+}, {});
+
+const getDayOrder = (day = "") => {
+  const normalizedDay = String(day).trim().toLowerCase();
+  return DAY_ORDER_MAP[normalizedDay] ?? DAY_SEQUENCE.length;
+};
+
+const getScheduleStartMinutes = (time = "") => {
+  const { startTime } = parseScheduleTimeRange(time);
+  if (!startTime) return Number.MAX_SAFE_INTEGER;
+
+  const [hourStr = "0", minuteStr = "0"] = startTime.split(":");
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return Number.MAX_SAFE_INTEGER;
+  return (hour * 60) + minute;
+};
 
 const ProfessorPage = () => {
   const navigate = useNavigate();
@@ -44,6 +67,18 @@ const ProfessorPage = () => {
   const displayName = user ? `${user.firstName} ${user.lastName}` : "Professor";
   const welcomeName = user?.firstName || user?.username || "there";
   const departmentName = formatDepartment(user?.department || "Sciences");
+  const sortedSchedules = useMemo(
+    () => [...schedules].sort((a, b) => {
+      const dayOrderDiff = getDayOrder(a?.day) - getDayOrder(b?.day);
+      if (dayOrderDiff !== 0) return dayOrderDiff;
+
+      const startTimeDiff = getScheduleStartMinutes(a?.time) - getScheduleStartMinutes(b?.time);
+      if (startTimeDiff !== 0) return startTimeDiff;
+
+      return String(a?.subject || "").localeCompare(String(b?.subject || ""));
+    }),
+    [schedules],
+  );
 
   return (
     <div className="min-h-screen bg-[#eef1f8] p-8 font-sans">
@@ -105,16 +140,16 @@ const ProfessorPage = () => {
             </div>
 
             <div className="space-y-0 relative">
-              {!loading && schedules.length > 0 && (
+              {!loading && sortedSchedules.length > 0 && (
                 <div className="absolute left-[39px] top-2 bottom-6 w-px bg-gray-200"></div>
               )}
 
               {loading ? (
                 <p className="text-gray-400 text-sm text-center py-8">Loading schedules...</p>
-              ) : schedules.length === 0 ? (
+              ) : sortedSchedules.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center py-8">No schedules yet. Add one to get started.</p>
               ) : (
-                schedules.map((item, index) => (
+                sortedSchedules.map((item, index) => (
                   <div key={item._id || index} className="flex gap-8 relative pb-8 last:pb-0">
                     <div className="w-16 pt-3 text-sm font-bold text-gray-600 shrink-0 bg-white z-10">
                       {formatScheduleTimeRange(item.time)}
@@ -162,16 +197,16 @@ const ProfessorPage = () => {
               className="w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-50 flex items-center justify-center gap-3 text-[#14234b] font-bold text-lg hover:shadow-md transition-shadow"
             >
               <Calendar size={22} className="text-[#14234b]" />
-              Add/Edit Schedule
+              Add Schedule
             </button>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-50 flex relative">
               <div className="flex-1 p-6 text-center border-r border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-2">ACTIVE LABS</p>
+                <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-2">LABS</p>
                 <p className="text-4xl font-bold text-[#14234b]">04</p>
               </div>
               <div className="flex-1 p-6 text-center">
-                <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-2">ADVISEES</p>
+                <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-2">LECTURE</p>
                 <p className="text-4xl font-bold text-[#14234b]">12</p>
               </div>
 
