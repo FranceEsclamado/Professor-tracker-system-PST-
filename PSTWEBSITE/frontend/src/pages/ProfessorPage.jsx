@@ -22,6 +22,9 @@ const formatDepartment = (department = "") =>
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const normalizeScheduleType = (type = "") => (String(type).trim().toLowerCase() === "lab" ? "lab" : "lecture");
+const formatScheduleType = (type = "") => (normalizeScheduleType(type) === "lab" ? "Lab" : "Lecture");
+
 const DAY_SEQUENCE = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_ORDER_MAP = DAY_SEQUENCE.reduce((map, day, index) => {
   map[day] = index;
@@ -77,6 +80,17 @@ const ProfessorPage = () => {
 
       return String(a?.subject || "").localeCompare(String(b?.subject || ""));
     }),
+    [schedules],
+  );
+  const typeTotals = useMemo(
+    () => schedules.reduce(
+      (totals, item) => {
+        const normalizedType = normalizeScheduleType(item?.type);
+        totals[normalizedType] += 1;
+        return totals;
+      },
+      { lab: 0, lecture: 0 },
+    ),
     [schedules],
   );
 
@@ -169,7 +183,7 @@ const ProfessorPage = () => {
                           </span>
                           <span className="flex items-center gap-1.5">
                             <Clock size={16} className="text-gray-400" />
-                            {item.day}
+                            {item.day} | {formatScheduleType(item.type)}
                           </span>
                         </div>
                       </div>
@@ -203,11 +217,11 @@ const ProfessorPage = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-50 flex relative">
               <div className="flex-1 p-6 text-center border-r border-gray-100">
                 <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-2">LABS</p>
-                <p className="text-4xl font-bold text-[#14234b]">04</p>
+                <p className="text-4xl font-bold text-[#14234b]">{String(typeTotals.lab).padStart(2, "0")}</p>
               </div>
               <div className="flex-1 p-6 text-center">
                 <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-2">LECTURE</p>
-                <p className="text-4xl font-bold text-[#14234b]">12</p>
+                <p className="text-4xl font-bold text-[#14234b]">{String(typeTotals.lecture).padStart(2, "0")}</p>
               </div>
 
               <button

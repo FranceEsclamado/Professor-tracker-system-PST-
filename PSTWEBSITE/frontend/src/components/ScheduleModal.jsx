@@ -3,10 +3,14 @@ import { X } from "lucide-react";
 import api from "../api/axios";
 import { buildScheduleTimeRange } from "../utils/scheduleTime";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const TYPES = [
+  { label: "Lab", value: "lab" },
+  { label: "Lecture", value: "lecture" },
+];
 
 const ScheduleModal = ({ onClose, onSuccess }) => {
-  const [form, setForm] = useState({ subject: "", room: "", startTime: "", endTime: "", day: "" });
+  const [form, setForm] = useState({ subject: "", room: "", startTime: "", endTime: "", day: "", type: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -14,7 +18,7 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.subject || !form.room || !form.startTime || !form.endTime || !form.day) {
+    if (!form.subject || !form.room || !form.startTime || !form.endTime || !form.day || !form.type) {
       setError("All fields are required");
       return;
     }
@@ -38,6 +42,7 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
         room: form.room,
         day: form.day,
         time: timeRange,
+        type: form.type,
       });
       onSuccess();
       onClose();
@@ -120,6 +125,21 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
               <option value="">Select a day</option>
               {DAYS.map((d) => (
                 <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Type</label>
+            <select
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-[#f8fafc] border border-gray-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-[#14234b] focus:ring-2 focus:ring-[#14234b]/10 transition-all"
+            >
+              <option value="">Select a type</option>
+              {TYPES.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
           </div>

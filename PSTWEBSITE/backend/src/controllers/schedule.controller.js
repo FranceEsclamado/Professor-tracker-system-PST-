@@ -1,14 +1,24 @@
 import { Schedule } from "../models/schedules.model.js";
 
+const normalizeScheduleType = (value = "") => String(value).trim().toLowerCase();
+const VALID_TYPES = new Set(["lab", "lecture"]);
+
 //create schedule
 
 const createSchedule = async (req, res) => {
     try {
-        const { subject, room, time, day } = req.body;
+        const { subject, room, time, day, type } = req.body;
+        const normalizedType = normalizeScheduleType(type);
 
-        if (!subject || !room || !time || !day){
+        if (!subject || !room || !time || !day || !normalizedType){
             return res.status(400).json({
                 message: "all fields needs to be filled"
+            });
+        }
+
+        if (!VALID_TYPES.has(normalizedType)) {
+            return res.status(400).json({
+                message: "Type must be either lab or lecture"
             });
         }
 
@@ -18,7 +28,8 @@ const createSchedule = async (req, res) => {
             subject,
             room,
             time,
-            day
+            day,
+            type: normalizedType,
         });
 
         const populated = await schedule.populate("createdBy", "firstName lastName username");
@@ -76,12 +87,21 @@ const getScheduleByUsername = async (req, res) => {
 
 const updateSchedule = async (req, res) => {
     try {
-        const allowedFields = ["subject", "room", "time", "day"];
+        const allowedFields = ["subject", "room", "time", "day", "type"];
         const updates = {};
 
         for (const field of allowedFields) {
             if (typeof req.body[field] === "string") {
                 updates[field] = req.body[field].trim();
+            }
+        }
+
+        if (typeof updates.type === "string") {
+            updates.type = normalizeScheduleType(updates.type);
+            if (!VALID_TYPES.has(updates.type)) {
+                return res.status(400).json({
+                    message: "Type must be either lab or lecture"
+                });
             }
         }
 

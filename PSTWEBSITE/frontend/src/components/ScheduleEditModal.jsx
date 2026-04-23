@@ -3,10 +3,14 @@ import { X } from "lucide-react";
 import api from "../api/axios";
 import { buildScheduleTimeRange, parseScheduleTimeRange } from "../utils/scheduleTime";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const TYPES = [
+  { label: "Lab", value: "lab" },
+  { label: "Lecture", value: "lecture" },
+];
 
 const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
-  const [form, setForm] = useState({ subject: "", room: "", startTime: "", endTime: "", day: "" });
+  const [form, setForm] = useState({ subject: "", room: "", startTime: "", endTime: "", day: "", type: "lecture" });
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -21,6 +25,7 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
       startTime: parsedTime.startTime,
       endTime: parsedTime.endTime,
       day: schedule.day || "",
+      type: String(schedule.type || "").trim().toLowerCase() === "lab" ? "lab" : "lecture",
     });
   }, [schedule]);
 
@@ -32,7 +37,7 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
       setError("Schedule ID is missing");
       return;
     }
-    if (!form.subject || !form.room || !form.startTime || !form.endTime || !form.day) {
+    if (!form.subject || !form.room || !form.startTime || !form.endTime || !form.day || !form.type) {
       setError("All fields are required");
       return;
     }
@@ -56,6 +61,7 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
         room: form.room,
         day: form.day,
         time: timeRange,
+        type: form.type,
       });
       onSuccess();
       onClose();
@@ -161,6 +167,21 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
               <option value="">Select a day</option>
               {DAYS.map((d) => (
                 <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Type</label>
+            <select
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-[#f8fafc] border border-gray-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-[#14234b] focus:ring-2 focus:ring-[#14234b]/10 transition-all"
+            >
+              <option value="">Select a type</option>
+              {TYPES.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
           </div>

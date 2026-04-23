@@ -32,6 +32,14 @@ const scheduleSchema = new Schema(
             required: true,
             trim: true,
         },
+        type: {
+            type: String,
+            required: true,
+            enum: ["lab", "lecture"],
+            default: "lecture",
+            trim: true,
+            lowercase: true,
+        },
     },
     {
         timestamps: true,
