@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/LoginPage";
 import ProfessorPage from "./pages/ProfessorPage";
+import SearchProfessorPage from "./pages/SearchProfessorPage";
 import PrivateRoute from "./components/PrivateRoute";
 import MainPage from "./pages/MainPage";
 
@@ -21,6 +22,15 @@ function App() {
           element={
             <PrivateRoute>
               <ProfessorPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/search-professor"
+          element={
+            <PrivateRoute>
+              <SearchProfessorPage />
             </PrivateRoute>
           }
         />
