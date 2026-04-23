@@ -28,11 +28,7 @@ function App() {
 
         <Route
           path="/search-professor"
-          element={
-            <PrivateRoute>
-              <SearchProfessorPage />
-            </PrivateRoute>
-          }
+          element={<SearchProfessorPage />}
         />
 
         {/* fallback: redirect any unknown path to login */}

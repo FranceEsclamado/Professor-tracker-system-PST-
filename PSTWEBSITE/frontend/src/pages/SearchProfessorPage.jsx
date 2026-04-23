@@ -1,8 +1,7 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import useSchedules from "../hooks/useSchedules";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Building2, Calendar, MapPin, Clock, ArrowLeft } from "lucide-react";
-import { getUser } from "../utils/auth";
+import api from "../api/axios";
 import { formatScheduleTimeRange, parseScheduleTimeRange } from "../utils/scheduleTime";
 
 const formatDepartment = (department = "") =>
@@ -39,12 +38,63 @@ const getScheduleStartMinutes = (time = "") => {
 
 const SearchProfessorPage = () => {
   const navigate = useNavigate();
-  const user = getUser();
-  const { schedules, loading } = useSchedules();
+  const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [schedules, setSchedules] = useState([]);
+  const [professor, setProfessor] = useState(null);
 
-  const displayName = user ? `${user.firstName} ${user.lastName}` : "Professor";
-  const welcomeName = user?.firstName || user?.username || "there";
-  const departmentName = formatDepartment(user?.department || "Sciences");
+  const searchName = String(searchParams.get("name") || "").trim();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProfessorSchedules = async () => {
+      if (!searchName) {
+        if (!cancelled) {
+          setError("Please provide a professor name.");
+          setSchedules([]);
+          setProfessor(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setLoading(true);
+        setError("");
+      }
+
+      try {
+        const res = await api.get("/schedules/public/search", {
+          params: { name: searchName },
+        });
+
+        if (!cancelled) {
+          setProfessor(res.data?.professor || null);
+          setSchedules(Array.isArray(res.data?.schedules) ? res.data.schedules : []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setProfessor(null);
+          setSchedules([]);
+          setError(err.response?.data?.message || "Failed to load professor schedules");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadProfessorSchedules();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchName]);
+
+  const displayName = professor ? `${professor.firstName} ${professor.lastName}` : searchName || "Professor";
+  const welcomeName = professor?.firstName || searchName || "there";
+  const departmentName = formatDepartment(professor?.department || "Sciences");
 
   const sortedSchedules = useMemo(
     () => [...schedules].sort((a, b) => {
@@ -100,7 +150,7 @@ const SearchProfessorPage = () => {
 
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 bg-white hover:bg-gray-50 text-[#14234b] px-5 py-2.5 rounded-xl shadow-sm border border-gray-100 transition-all font-semibold text-sm"
           >
             <ArrowLeft size={18} />
@@ -110,7 +160,7 @@ const SearchProfessorPage = () => {
 
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-50">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-2xl font-bold text-[#14234b]">My Schedule</h3>
+            <h3 className="text-2xl font-bold text-[#14234b]">Class Schedule</h3>
             <div className="flex items-center gap-2 text-gray-500 font-medium text-sm">
               <Calendar size={18} />
               {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
@@ -124,6 +174,8 @@ const SearchProfessorPage = () => {
 
             {loading ? (
               <p className="text-gray-400 text-sm text-center py-8">Loading schedules...</p>
+            ) : error ? (
+              <p className="text-red-500 text-sm text-center py-8">{error}</p>
             ) : sortedSchedules.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">No schedules available.</p>
             ) : (

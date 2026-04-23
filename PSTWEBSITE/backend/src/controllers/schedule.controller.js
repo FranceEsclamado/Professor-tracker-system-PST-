@@ -1,7 +1,9 @@
 import { Schedule } from "../models/schedules.model.js";
+import { User } from "../models/user.model.js";
 
 const normalizeScheduleType = (value = "") => String(value).trim().toLowerCase();
 const VALID_TYPES = new Set(["lab", "lecture"]);
+const escapeRegExp = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 //create schedule
 
@@ -143,6 +145,56 @@ const updateSchedule = async (req, res) => {
     }
 }
 
+const searchProfessorSchedules = async (req, res) => {
+    try {
+        const rawName = String(req.query?.name || "").trim();
+        if (!rawName) {
+            return res.status(400).json({
+                message: "Please provide firstName and lastName"
+            });
+        }
+
+        const nameParts = rawName.split(/\s+/).filter(Boolean);
+        if (nameParts.length < 2) {
+            return res.status(400).json({
+                message: "Please provide both firstName and lastName"
+            });
+        }
+
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(" ");
+
+        const user = await User.findOne({
+            firstName: { $regex: `^${escapeRegExp(firstName)}$`, $options: "i" },
+            lastName: { $regex: `^${escapeRegExp(lastName)}$`, $options: "i" },
+        }).select("firstName lastName username department");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "Professor not found"
+            });
+        }
+
+        const schedules = await Schedule.find({ username: user.username })
+            .populate("createdBy", "firstName lastName username")
+            .sort({ createdAt: 1 });
+
+        res.status(200).json({
+            professor: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                department: user.department,
+            },
+            schedules,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "SERVER ERROR"
+        });
+    }
+}
+
 const deleteSchedule = async (req, res) => {
     try {
         const deleted = await Schedule.findOneAndDelete({ _id: req.params.id, username: req.user.username });
@@ -165,6 +217,7 @@ export {
     createSchedule,
     getSchedules,
     getScheduleByUsername,
+    searchProfessorSchedules,
     updateSchedule,
     deleteSchedule
 };
