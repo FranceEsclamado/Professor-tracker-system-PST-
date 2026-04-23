@@ -1,19 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import api from "../api/axios";
-import { buildScheduleTimeRange } from "../utils/scheduleTime";
+import { buildScheduleTimeRange, parseScheduleTimeRange } from "../utils/scheduleTime";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-const ScheduleModal = ({ onClose, onSuccess }) => {
+const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
   const [form, setForm] = useState({ subject: "", room: "", startTime: "", endTime: "", day: "" });
-  const [loading, setLoading] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!schedule) return;
+    const parsedTime = parseScheduleTimeRange(schedule.time || "");
+    setForm({
+      subject: schedule.subject || "",
+      room: schedule.room || "",
+      startTime: parsedTime.startTime,
+      endTime: parsedTime.endTime,
+      day: schedule.day || "",
+    });
+  }, [schedule]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const handleEdit = async (e) => {
     e.preventDefault();
+    if (!schedule?._id) {
+      setError("Schedule ID is missing");
+      return;
+    }
     if (!form.subject || !form.room || !form.startTime || !form.endTime || !form.day) {
       setError("All fields are required");
       return;
@@ -30,10 +47,10 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
       return;
     }
 
-    setLoading(true);
+    setLoadingEdit(true);
     setError("");
     try {
-      await api.post("/schedules/create", {
+      await api.patch(`/schedules/update/${schedule._id}`, {
         subject: form.subject,
         room: form.room,
         day: form.day,
@@ -42,9 +59,31 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create schedule");
+      setError(err.response?.data?.message || "Failed to update schedule");
     } finally {
-      setLoading(false);
+      setLoadingEdit(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!schedule?._id) {
+      setError("Schedule ID is missing");
+      return;
+    }
+
+    const confirmed = window.confirm("Delete this schedule?");
+    if (!confirmed) return;
+
+    setLoadingDelete(true);
+    setError("");
+    try {
+      await api.delete(`/schedules/delete/${schedule._id}`);
+      onSuccess();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete schedule");
+    } finally {
+      setLoadingDelete(false);
     }
   };
 
@@ -52,7 +91,7 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-[#14234b]">Add Schedule</h3>
+          <h3 className="text-xl font-bold text-[#14234b]">Manage Schedule</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={22} />
           </button>
@@ -64,7 +103,7 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleEdit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Subject</label>
             <input
@@ -127,17 +166,18 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={onClose}
-              className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors"
+              onClick={handleDelete}
+              disabled={loadingDelete || loadingEdit}
+              className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-semibold text-sm hover:bg-red-50 transition-colors disabled:opacity-60"
             >
-              Cancel
+              {loadingDelete ? "Deleting..." : "Delete"}
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loadingEdit || loadingDelete}
               className="flex-1 py-3 rounded-xl bg-[#14234b] hover:bg-[#1e3470] text-white font-bold text-sm transition-colors disabled:opacity-60"
             >
-              {loading ? "Saving..." : "Save Schedule"}
+              {loadingEdit ? "Saving..." : "Edit"}
             </button>
           </div>
         </form>
@@ -146,4 +186,4 @@ const ScheduleModal = ({ onClose, onSuccess }) => {
   );
 };
 
-export default ScheduleModal;
+export default ScheduleEditModal;

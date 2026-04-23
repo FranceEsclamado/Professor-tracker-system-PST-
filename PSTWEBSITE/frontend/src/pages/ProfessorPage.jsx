@@ -13,12 +13,15 @@ import {
   LogOut,
 } from "lucide-react";
 import ScheduleModal from "../components/ScheduleModal";
+import ScheduleEditModal from "../components/ScheduleEditModal";
+import { formatScheduleTimeRange } from "../utils/scheduleTime";
 
 const ProfessorPage = () => {
   const navigate = useNavigate();
   const user = getUser();
   const { schedules, loading, refresh } = useSchedules();
   const [showModal, setShowModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   const handleLogout = async () => {
     try {
@@ -107,10 +110,14 @@ const ProfessorPage = () => {
                 schedules.map((item, index) => (
                   <div key={item._id || index} className="flex gap-8 relative pb-8 last:pb-0">
                     <div className="w-16 pt-3 text-sm font-bold text-gray-600 shrink-0 bg-white z-10">
-                      {item.time}
+                      {formatScheduleTimeRange(item.time)}
                     </div>
 
-                    <div className="flex-1 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center border border-gray-100 bg-white transition-all">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSchedule(item)}
+                      className="flex-1 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center border border-gray-100 bg-white transition-all text-left hover:border-[#14234b]/30 hover:shadow-sm"
+                    >
                       <div>
                         <h4 className="text-lg font-bold text-[#14234b] mb-2">{item.subject}</h4>
                         <div className="flex gap-5 text-gray-500 text-sm font-medium">
@@ -128,7 +135,7 @@ const ProfessorPage = () => {
                       <span className="mt-3 md:mt-0 text-[10px] font-bold px-2.5 py-1 rounded tracking-wide bg-gray-100 text-gray-500">
                         SCHEDULED
                       </span>
-                    </div>
+                    </button>
                   </div>
                 ))
               )}
@@ -175,6 +182,14 @@ const ProfessorPage = () => {
       {showModal && (
         <ScheduleModal
           onClose={() => setShowModal(false)}
+          onSuccess={refresh}
+        />
+      )}
+
+      {selectedSchedule && (
+        <ScheduleEditModal
+          schedule={selectedSchedule}
+          onClose={() => setSelectedSchedule(null)}
           onSuccess={refresh}
         />
       )}

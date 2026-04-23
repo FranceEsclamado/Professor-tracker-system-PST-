@@ -76,28 +76,47 @@ const getScheduleByUsername = async (req, res) => {
 
 const updateSchedule = async (req, res) => {
     try {
-        if(Object.keys(req.body).length === 0){
+        const allowedFields = ["subject", "room", "time", "day"];
+        const updates = {};
+
+        for (const field of allowedFields) {
+            if (typeof req.body[field] === "string") {
+                updates[field] = req.body[field].trim();
+            }
+        }
+
+        if(Object.keys(updates).length === 0){
             return res.status(400).json({
                 message: "No data provided"
             });
         }
 
-        const schedule = await Schedule.findOne({ _id: req.params.id, username: req.user.username });
+        const updatedSchedule = await Schedule.findOneAndUpdate(
+            { _id: req.params.id, username: req.user.username },
+            { $set: { ...updates, createdBy: req.user._id } },
+            { new: true, runValidators: true }
+        );
 
-        if(!schedule){
+        if(!updatedSchedule){
             return res.status(404).json({
             message: "schedule not found"
             });
         } 
 
-        delete req.body.username;
-        Object.assign(schedule, req.body);
-        const updatedSchedule = await schedule.save();
-
         res.status(200).json({
             message: "schedule updated successfully", schedule: updatedSchedule
         });
     } catch (error){ 
+        if (error?.name === "CastError") {
+            return res.status(400).json({
+                message: "Invalid schedule ID"
+            });
+        }
+        if (error?.name === "ValidationError") {
+            return res.status(400).json({
+                message: error.message
+            });
+        }
         res.status(500).json({
             message: "SERVER ERROR"
         });
