@@ -9,6 +9,7 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
   const [form, setForm] = useState({ subject: "", room: "", startTime: "", endTime: "", day: "" });
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -65,15 +66,15 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!schedule?._id) {
       setError("Schedule ID is missing");
       return;
     }
+    setShowDeleteConfirm(true);
+  };
 
-    const confirmed = window.confirm("Delete this schedule?");
-    if (!confirmed) return;
-
+  const handleConfirmDelete = async () => {
     setLoadingDelete(true);
     setError("");
     try {
@@ -82,6 +83,7 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete schedule");
+      setShowDeleteConfirm(false);
     } finally {
       setLoadingDelete(false);
     }
@@ -166,7 +168,7 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={loadingDelete || loadingEdit}
               className="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-semibold text-sm hover:bg-red-50 transition-colors disabled:opacity-60"
             >
@@ -182,6 +184,35 @@ const ScheduleEditModal = ({ schedule, onClose, onSuccess }) => {
           </div>
         </form>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/45 z-[60] flex items-center justify-center p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-6 shadow-xl">
+            <h4 className="text-lg font-bold text-[#14234b] mb-2">Delete Schedule?</h4>
+            <p className="text-sm text-gray-600 mb-5">
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={loadingDelete}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={loadingDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-colors disabled:opacity-60"
+              >
+                {loadingDelete ? "Deleting..." : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
