@@ -93,7 +93,6 @@ const SearchProfessorPage = () => {
   }, [searchName]);
 
   const displayName = professor ? `${professor.firstName} ${professor.lastName}` : searchName || "Professor";
-  const welcomeName = professor?.firstName || searchName || "there";
   const departmentName = formatDepartment(professor?.department || "Sciences");
 
   const sortedSchedules = useMemo(
@@ -138,16 +137,7 @@ const SearchProfessorPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-          <div>
-            <h2 className="text-4xl font-bold text-[#14234b] mb-2 font-serif tracking-tight">
-              Welcome Back, {welcomeName}!
-            </h2>
-            <p className="text-gray-600 text-sm">
-              It's a bright day at the Xavier Main Campus. Here is your overview for today.
-            </p>
-          </div>
-
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => navigate("/")}
