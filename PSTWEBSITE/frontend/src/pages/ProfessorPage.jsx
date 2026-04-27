@@ -48,6 +48,15 @@ const getScheduleStartMinutes = (time = "") => {
   return (hour * 60) + minute;
 };
 
+const getStatusDisplay = (status) => {
+  const statusMap = {
+    ON: "On Campus",
+    OFF: "Off Campus",
+    CLASS: "In Class"
+  };
+  return statusMap[status];
+};
+
 const ProfessorPage = () => {
   const navigate = useNavigate();
   const user = getUser();
@@ -59,7 +68,6 @@ const ProfessorPage = () => {
     try {
       await api.post("/users/logout", { username: user?.username });
     } catch {
-      // ignore server errors on logout
     } finally {
       clearToken();
       clearUser();
@@ -70,6 +78,7 @@ const ProfessorPage = () => {
   const displayName = user ? `${user.firstName} ${user.lastName}` : "Professor";
   const welcomeName = user?.firstName || user?.username || "there";
   const departmentName = formatDepartment(user?.department || "Sciences");
+  const status = user.status;
   const sortedSchedules = useMemo(
     () => [...schedules].sort((a, b) => {
       const dayOrderDiff = getDayOrder(a?.day) - getDayOrder(b?.day);
@@ -117,7 +126,7 @@ const ProfessorPage = () => {
               <span className="text-xs font-bold text-gray-400 tracking-wider pl-3">STATUS</span>
               <div className="bg-[#e2f5ea] text-[#1f9254] px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 shadow-sm">
                 <div className="w-2 h-2 rounded-full bg-[#1f9254]"></div>
-                On Campus
+                {getStatusDisplay(status)}
               </div>
             </div>
             <span className="text-[11px] text-gray-400 italic mt-2 pr-2">Last sync: 2 minutes ago</span>

@@ -21,11 +21,12 @@ const registerUser = async (req, res) => {
             department,
             firstName,
             lastName,
+            status: "ON"
         });
 
         res.status(201).json({
             message: "User Registered",
-            user: {id: user._id, email: user.email, username: user.username, firstName: user.firstName, lastName: user.lastName, department: user.department}
+            user: {id: user._id, email: user.email, username: user.username, firstName: user.firstName, lastName: user.lastName, department: user.department, status: user.status}
         });
     } catch (error) {
         res.status(500).json({message: "error server", error: error.message });
@@ -80,6 +81,7 @@ const loginUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         department: user.department,
+        status: user.status
       }
     });
   } catch (error) {

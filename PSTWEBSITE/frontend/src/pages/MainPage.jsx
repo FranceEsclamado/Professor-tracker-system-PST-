@@ -32,13 +32,7 @@ export default function MainPage() {
 
     
     const scheduleData = [
-        { day: "WEDNESDAY", time: "9:00 AM", professor: "Mr. Spongebob", timeRange: "9:00 am - 10:00 am", room: "SMB201 (LEC)", color: "bg-[#2c3b5e]", text: "text-white" },
-        { day: "SATURDAY", time: "1:00 PM", professor: "Mr. Spongebob", timeRange: "1:00 pm - 2:00 pm", room: "SBM 304 (LEC)", color: "bg-[#2c3b5e]", text: "text-white" },
-        
-        // Added a few extra classes using our color scheme to make the calendar look complete
-        { day: "MONDAY", time: "8:00 AM", professor: "Dr. Patrick", timeRange: "8:00 am - 9:00 am", room: "IT 301 (LAB)", color: "bg-[#ffb627]", text: "text-gray-900" },
-        { day: "TUESDAY", time: "10:00 AM", professor: "Mrs. Puff", timeRange: "10:00 am - 11:00 am", room: "CS 202 (LEC)", color: "bg-[#ffb627]", text: "text-gray-900" },
-        { day: "FRIDAY", time: "2:00 PM", professor: "Mr. Krabs", timeRange: "2:00 pm - 3:00 pm", room: "BUS 101 (LEC)", color: "bg-[#2c3b5e]", text: "text-white" },
+
     ];
 
     const getScheduleItem = (day, time) => {
